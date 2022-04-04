@@ -103,71 +103,61 @@ double gauss_simplified(double A[][SIZE], int n)
 
 double gauss(double A[][SIZE], const double b[], double x[], const int n, const double eps)
 {
-    int indeksy[n];
+	int indeksy[n];
+	double det=1;
     for(int i=0; i<n; i++) indeksy[i]=i;
 
     for(int i=0; i<n; i++)
 	{   
-        int max_wiersz_ind=indeksy[i];
-        for(int j=i; j<n; j++)
+        for(int j=i+1; j<n; j++)
         {
-            if(fabs(A[max_wiersz_ind][i])<fabs(A[indeksy[j]][i]))
+			if(fabs(A[indeksy[i]][i])<fabs(A[indeksy[j]][i]))
             {
-                max_wiersz_ind=indeksy[j];
-                int tmp=indeksy[i];
-                indeksy[i]=max_wiersz_ind;
-                indeksy[max_wiersz_ind]=tmp;
+			det*=-1;
+			int tmp=indeksy[i];
+			indeksy[i]=indeksy[j];
+			indeksy[indeksy[j]]=tmp;
             }
         }
 
 		double element=A[indeksy[i]][i];
         for(int j=i+1; j<n; j++)
 		{	
-		    if(element<eps) return 0;
+			if(fabs(element)<eps) return 0;
             double razy=A[indeksy[j]][i];
 			for(int x=0; x<n; x++)
 			{
 				A[indeksy[j]][x]-=(A[indeksy[i]][x]/element)*razy;
 			}
 		}
-	printf("\n");
-    print_mat(A,n,n);
-    printf("\n");
+	
 	}
-    double det=1;
 
-    for(int i=0; i<n; i++)
-    {   
-        det*=A[indeksy[i]][i];
-    }
+    for(int i=0; i<n; i++)	det*=A[indeksy[i]][i];
+	for(int i=0; i<n; i++) if(b[i]==0) return 0;
 
-    for(int i=0; i<n; i++) if(b[i]==0) return 0;
+	
 
-    for(int i=n-1; i>=0; i--)
-    {
-        double s=A[indeksy[i]][n];
-        for(int j=n-1; j>i+1; j--)
-        {
-            s-=A[indeksy[i]][j]*b[j];
-        }
-        x[indeksy[i]]=s/A[indeksy[i]][i];
-    }
+    
 
 
- return fabs(det);
+
+ return det;
 }
-
-
-
-
-
-
 
 
 // 5.4
 // Returns the determinant; B contains the inverse of A (if det(A) != 0)
 // If max A[i][i] < eps, function returns 0.
-double matrix_inv(double A[][SIZE], double B[][SIZE], int n, double eps);
+double matrix_inv(double A[][SIZE], double B[][SIZE], int n, double eps)
+{
+
+
+
+
+
+return 0;	
+}
 
 int main(void) {
 
@@ -202,14 +192,14 @@ int main(void) {
 			printf("%.4f\n", det);
 			if(det) print_vector(x, n);
 			break;
-		/*
+		
 		case 4:
 			scanf("%d", &n);
 			read_mat(A,n,n);
 			printf("%.4f\n",matrix_inv(A, B, n, eps));
 			print_mat(B, n, n);
 			break;
-		*/
+		
 		default:
 			printf("NOTHING TO DO FOR %d\n", to_do);
 			break;
