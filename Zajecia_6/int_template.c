@@ -48,27 +48,30 @@ double int_trapezoid(double x1, double x2, int n, f_1d f){
 // 6.2
 double integral_2d(double x1, double x2, int nx, double y1, double y2, int ny,
 		f_2d f, boundary_2d boundary){
-	double integral_for_x=0, integral_for_y=0, dx=(x2-x1)/nx, dy=(y2-y1)/ny;
+	double integral=0, dx=(x2-x1)/nx, dy=(y2-y1)/ny;
 	for(int i=0;i<nx;i++)
+	for(int j=0; j<ny; j++)
 	{
-		integral_for_x+=(boundary(x1+(dx*i),y1+(dy*i))  ? f(x1+dx*i,y1+dy*i): 0 );
+		integral+=(boundary(x1+(dx*i),y1+(dy*j))  ? f(x1+dx*i,y1+dy*j)*dx*dy: 0 );
+	
 	}
-
-	for(int i=0; i<ny; i++)
-	{
-		integral_for_y+=(boundary(x1+dx*i, y1+dy*i) ? f(x1+dx*i,y1+dy*i)*dy: 0 );
+	return integral;
 	}
-
-	//printf("\n%.2f %.2f \n", integral_for_x, integral_for_y);	
-
-	return (((x2-x1)*(y2-y1))/nx)*integral_for_x;
-
-
-		}
 
 //6.3
 double integral_3d(double x1, double x2, int nx, double y1, double y2, int ny,
-		double z1, double z2, int nz, f_3d f);
+		double z1, double z2, int nz, f_3d f){
+
+		double integral=0, dx=(x2-x1)/nx, dy=(y2-y1)/ny, dz=(z2-z1)/nz;
+		for(int i=0; i<nx; i++)
+			for(int j=0; j<ny; j++)
+				for(int z=0; z<nz; z++)
+					integral+=f(x1+i*dx,y1+j*dy,z1+z*dz)*dx*dy*dz;
+		return integral;
+		
+
+
+		}
 
 double f_1d_1(double x) {
 	return x;
@@ -110,9 +113,13 @@ int f_2d_3_boundary(double x, double y){
 	return x*x + y*y <=x && x*x + y*y <= y;
 }
 
-double f_3d_1(double x, double y, double z);
+double f_3d_1(double x, double y, double z){
+	return x+3*y+5*z;
+}
 
-double f_3d_2(double x, double y, double z);
+double f_3d_2(double x, double y, double z){
+	return 8*sin(x) +(5*cos(y)*5*cos(y))+2*z;
+}
 
 int main(void) {
 	int to_do;
@@ -146,7 +153,7 @@ int main(void) {
 			}
 			printf("\n");
 			break;
-			/*
+			
 		case 3: // 6.3
 			scanf("%lf %lf %d", &x1, &x2, &nx);
 			scanf("%lf %lf %d", &y1, &y2, &ny);
@@ -158,7 +165,7 @@ int main(void) {
 			}
 			printf("\n");
 			break;
-		*/
+		
 		default:
 			printf("NOTHING TO DO FOR %d\n", to_do);
 			break;
