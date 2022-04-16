@@ -11,7 +11,8 @@ typedef struct {
 } pair;
 
 // Add pair to existing relation if not already there
-int add_relation (pair*, int, pair);
+int add_relation (pair*, int, pair){
+}
 
 // Case 1:
 // The relation R is reflexive if xRx for every x in X
@@ -48,27 +49,27 @@ int get_domain(pair*, int, int*);
 // Case 3:
 int composition (pair*, int, pair*, int, pair*);
 
-int cmp (pair p1, pair p2) {
+int cmp(pair p1, pair p2) {
 	if (p1.first == p2.first) return p1.second - p2.second;
 	return p1.first - p2.first;
 }
 
 // Read number of pairs, n, and then n pairs of ints
-int read_relation(pair*){
-	int n=0;
+int read_relation(pair* set_of_pairs){
+	int n=0, size=0;
 	scanf("%d", &n);
-	struct pair new[1];
+	pair new_pair;
 	for(int i=0; i<n; i++){
-	scanf("%d %d" &new[0].left, &new[0].right);
-	add_relation(&pair, n, new[0]);
+	scanf("%d %d", &new_pair.first, &new_pair.second);
+	if(add_relation(set_of_pairs, size, new_pair)==0) size++;
 	}
-
+	return n;
 }
 
 void print_int_array(int *array, int n) {
 	printf("%d\n", n);
 	for (int i = 0; i < n; ++i) {
-		printf("%d ", array[i]);
+		printf("%d %d\n", array[i]);
 	}
 	printf("\n");
 }
@@ -85,7 +86,7 @@ int main(void) {
 	int ordered, size_2, n_domain;
 
 	switch (to_do) {
-		case 1:
+		/*case 1:
 			printf("%d ", is_reflexive(relation, size));
 			printf("%d ", is_irreflexive(relation, size));
 			printf("%d ", is_symmetric(relation, size));
@@ -110,7 +111,7 @@ int main(void) {
 			size_2 = read_relation(relation_2);
 			printf("%d\n", composition(relation, size,
 			   relation_2, size_2, comp_relation));
-			break;
+			break;*/
 		default:
 			printf("NOTHING TO DO FOR %d\n", to_do);
 			break;
