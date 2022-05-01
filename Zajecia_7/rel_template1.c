@@ -268,11 +268,11 @@ if(is_partial_order(list,size))
 		{
 			if(list[j].first==domain[i] || list[j].second==domain[i]) ++counter;
 		}
-		if(counter<n-1) return 0;
+		if(counter<n) return 0;
 	}
 	return 1;
 }
-else return 0;
+return 0;
 }
 
 int find_max_elements(pair* pairs, int size, int *result)
