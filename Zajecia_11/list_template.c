@@ -44,7 +44,7 @@ void init_list(List *p_list, ConstDataFp dump_data, DataFp free_data,
 // Print all elements of the list
 void dump_list(const List* p_list) {
 
-	ListElement *tmp = malloc(sizeof(ListElement));
+	ListElement *tmp;
 	tmp = p_list->head;
 	while(tmp)
 	{
@@ -55,11 +55,11 @@ void dump_list(const List* p_list) {
 
 // Print elements of the list if comparable to data
 void dump_list_if(List *p_list, void *data) {
-	ListElement *element = malloc(sizeof(ListElement));
+	ListElement *element;
 	element = p_list->head;
 	while(element)
 	{
-		if(p_list->compare_data(data,element->data))
+		if(p_list->compare_data(data,element->data)==0)
 			p_list->dump_data(element->data);
 		element=element->next;
 	}
@@ -121,7 +121,7 @@ void pop_front(List *p_list) {
 
 // Reverse the list
 void reverse(List *p_list) {
-	ListElement* one= malloc(sizeof(ListElement));
+	ListElement* one = malloc(sizeof(ListElement));
 	ListElement* two = malloc(sizeof(ListElement));
 	ListElement* three = malloc(sizeof(ListElement));
 	
@@ -155,10 +155,14 @@ void insert_in_order(List *p_list, void *data) {
 // find element in sorted list after which to insert given element
 ListElement* find_insertion_point(const List *p_list, void* p_element) {
 	ListElement* first;
+	if(p_list->compare_data(p_element,p_list->head)<0)
+	{
+		return NULL;
+	}
 	first=p_list->head;
 	while(first)
 	{
-		if((p_list->compare_data(first->data, p_element))<0)
+		if(p_list->compare_data(first->data, p_element)<0 && (first->next==NULL || p_list->compare_data(p_element,first->next->data)<0))
 			return first;
 		first=first->next;
 	}
@@ -171,12 +175,11 @@ void push_after(List *p_list, void *data, ListElement *previous) {
 	ListElement* element=malloc(sizeof(ListElement));
 	element->data=data;
 
-	if(previous->next==p_list->head)
+	if(previous==NULL)
 	{
 		element->next=p_list->head;
 		p_list->head=element;
 	}
-
 	else
 	{
 	element->next=previous->next;
@@ -238,29 +241,91 @@ typedef struct DataWord {
 } DataWord;
 
 void dump_word (const void *d) {
+	char * x = ((DataWord *)d)->word;
+	printf("%s\n", x);
 }
 
 void dump_word_lowercase (const void *d) {
+	char * x = ((DataWord *)d)->word;
+	printf("%s\n", x);
 }
 
 void free_word(void *d) {
+	free(d);
 }
 
 // conpare words case insensitive
 int cmp_word_alphabet(const void *a, const void *b) {
+	char * one = ((DataWord*)a)->word;
+	char * two = ((DataWord*)b)->word;
+	return strcmp(one,two);
 }
 
 int cmp_word_counter(const void *a, const void *b) {
+	int one = ((DataWord*)a)->counter;
+	int two = ((DataWord*)b)->counter;
+	return two-one;
 }
 
 // insert element; if present increase counter
 void insert_elem_counter(List *p_list, void *data) {
+	ListElement* tmp;
+	tmp = p_list->head;
+	int exist=0;
+	while(tmp)
+	{
+		DataWord* one = (DataWord*) tmp;
+		if(p_list->compare_data(data,tmp->data)==0)
+		{
+			exist=1;
+			one->counter+=1;
+		}
+		tmp=tmp->next;
+	}
+	if(!exist) push_after(p_list, data, find_insertion_point(p_list, data));
 }
 
 // read text, parse it to words, and insert those words to the list
 // in order given by the last parameter (0 - read order,
 // 1 - alphabetical order)
 void stream_to_list(List *p_list, FILE *stream, int order) {
+	char line[128];
+	char znaki[]=".,?!:;- 	\n\r";
+	if(order==0)
+	{
+	while(fgets(line, 128, stdin)!=NULL)
+	{	
+		char *words;
+		words=strtok(line, znaki);
+		while(words != NULL)
+		{
+			DataWord* one = malloc(sizeof(DataWord));
+			one->word = malloc(sizeof(words));
+			one->word=strdup(words);
+			push_back(p_list, one);
+			words=strtok(NULL, znaki);
+		}
+	}
+	}
+	else
+	{
+	while(fgets(line, 128, stdin)!=NULL)
+	{	
+		char *words;
+		words=strtok(line, znaki);
+		while(words != NULL)
+		{
+			DataWord* one = malloc(sizeof(DataWord));
+			one->word = malloc(sizeof(words));
+  			for(char *p=words; *p; p++) *p=tolower(*p);
+			one->word=strdup(words);
+			one->counter=0;
+			printf("WCZYTUJE DANE\n");
+			insert_elem_counter(p_list,one);
+			words=strtok(NULL, znaki);
+		}
+	}
+	}
 }
 
 // test integer list
