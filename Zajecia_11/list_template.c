@@ -35,27 +35,66 @@ typedef struct tagList {
 
 void init_list(List *p_list, ConstDataFp dump_data, DataFp free_data,
 			   CompareDataFp compare_data, InsertInOrder insert_sorted) {
+	p_list->dump_data=dump_data;
+	p_list->free_data=free_data;
+	p_list->compare_data=compare_data;
+	p_list->insert_sorted=insert_sorted;
 }
 
 // Print all elements of the list
 void dump_list(const List* p_list) {
-	
-	
 
-	
-
+	ListElement *tmp = malloc(sizeof(ListElement));
+	tmp = p_list->head;
+	while(tmp)
+	{
+		p_list->dump_data(tmp->data);
+		tmp=tmp->next;
+	}
 }
 
 // Print elements of the list if comparable to data
 void dump_list_if(List *p_list, void *data) {
+	ListElement *element = malloc(sizeof(ListElement));
+	element = p_list->head;
+	while(element)
+	{
+		if(p_list->compare_data(data,element->data))
+			p_list->dump_data(element->data);
+		element=element->next;
+	}
 }
 
 // Free all elements of the list
 void free_list(List* p_list) {
+
+	void* first;
+	p_list->tail=NULL;
+	while(p_list->head)
+	{
+		first=p_list->head;
+		p_list->head=p_list->head->next;
+		p_list->free_data(first);
+	}
 }
 
 // Push element at the beginning of the list
 void push_front(List *p_list, void *data){
+	ListElement *element = malloc(sizeof(ListElement));
+	if (element == NULL ) exit(MEMORY_ALLOCATION_ERROR);
+	element->data=data;
+	if(p_list->head)
+	{
+		element->next=p_list->head;
+		p_list->head=element;
+	}
+	if (!p_list->head)
+	{
+		element->next=NULL;
+	 	p_list->head=element;
+	 	p_list->tail=element;
+	}
+
 }
 
 // Push element at the end of the list
@@ -71,10 +110,41 @@ void push_back(List *p_list, void *data) {
 
 // Remove the first element
 void pop_front(List *p_list) {
+	void *first;
+	if(p_list->head)
+	{
+		first=p_list->head;
+		p_list->head=p_list->head->next;
+		free(first);
+	}
 }
 
 // Reverse the list
 void reverse(List *p_list) {
+	ListElement* one= malloc(sizeof(ListElement));
+	ListElement* two = malloc(sizeof(ListElement));
+	ListElement* three = malloc(sizeof(ListElement));
+	
+	two=p_list->head;
+	
+	void* tmp = p_list->head;
+	p_list->head=p_list->tail;
+	p_list->tail=tmp;
+	
+	one=NULL;
+	if(two)
+	{	
+		three=two->next;
+		while(three)
+		{
+			two->next=one;
+			one=two;
+			two=three;
+			three=three->next;
+		}
+		two->next=one;
+	}
+
 }
 
 // insert element preserving the ordering (defined by insert_sorted function)
@@ -83,15 +153,50 @@ void insert_in_order(List *p_list, void *data) {
 }
 
 // find element in sorted list after which to insert given element
-ListElement* find_insertion_point(const List *p_list, ListElement *p_element) {
+ListElement* find_insertion_point(const List *p_list, void* p_element) {
+	ListElement* first;
+	first=p_list->head;
+	while(first)
+	{
+		if((p_list->compare_data(first->data, p_element))<0)
+			return first;
+		first=first->next;
+	}
+	return first;
 }
 
 // Insert element after 'previous'
 void push_after(List *p_list, void *data, ListElement *previous) {
+
+	ListElement* element=malloc(sizeof(ListElement));
+	element->data=data;
+
+	if(previous->next==p_list->head)
+	{
+		element->next=p_list->head;
+		p_list->head=element;
+	}
+
+	else
+	{
+	element->next=previous->next;
+	previous->next=element;
+	if(element->next==NULL) p_list->tail = element;
+	}	
 }
 
 // Insert element preserving order (no counter)
 void insert_elem(List *p_list, void *p_data) {
+	ListElement* tmp;
+	tmp = p_list->head;
+	int exist=0;
+	while(tmp)
+	{
+		if(p_list->compare_data(p_data,tmp->data)==0)
+			exist=1;
+		tmp=tmp->next;
+	}
+	if(!exist) push_after(p_list, p_data, find_insertion_point(p_list, p_data));
 }
 
 // ---------------------------------------------------------------
@@ -105,16 +210,24 @@ typedef struct DataInt {
 } DataInt;
 
 void dump_int(const void *d) {
-
+	int* x = (int*) d;
+	printf("%d ",*x);
 }
 
 void free_int(void *d) {
+	free(d);
 }
 
 int cmp_int(const void *a, const void *b) {
+	int one = ((DataInt*)a)->id;
+	int two = ((DataInt*)b)->id;
+	return one-two;
 }
 
 DataInt *create_data_int(int v) {
+	DataInt* tmp= malloc(sizeof(DataInt));
+	tmp->id=v;
+	return tmp;
 }
 
 // Word element
@@ -196,7 +309,7 @@ int main(void) {
 			dump_list(&list);
 			free_list(&list);
 			break;
-		/*
+		
 		case 2: // read words from text, insert into list, and print
 			init_list(&list, dump_word, free_word,
 					  cmp_word_alphabet, insert_elem_counter);
@@ -216,7 +329,7 @@ int main(void) {
 			printf("\n");
 			free_list(&list);
 			break;
-		*/
+		
 		default:
 			printf("NOTHING TO DO FOR %d\n", to_do);
 			break;
