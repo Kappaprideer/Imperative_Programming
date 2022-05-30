@@ -35,6 +35,8 @@ typedef struct tagList {
 
 void init_list(List *p_list, ConstDataFp dump_data, DataFp free_data,
 			   CompareDataFp compare_data, InsertInOrder insert_sorted) {
+	p_list->head=NULL;
+	p_list->tail=NULL;
 	p_list->dump_data=dump_data;
 	p_list->free_data=free_data;
 	p_list->compare_data=compare_data;
@@ -115,7 +117,7 @@ void pop_front(List *p_list) {
 	{
 		first=p_list->head;
 		p_list->head=p_list->head->next;
-		free(first);
+		p_list->free_data(first);
 	}
 }
 
@@ -154,11 +156,11 @@ void insert_in_order(List *p_list, void *data) {
 
 // find element in sorted list after which to insert given element
 ListElement* find_insertion_point(const List *p_list, void* p_element) {
-	ListElement* first;
-	if(p_list->compare_data(p_element,p_list->head)<0)
+	if(p_list->compare_data(p_element,p_list->head->data)<0)
 	{
 		return NULL;
 	}
+	ListElement* first;
 	first=p_list->head;
 	while(first)
 	{
@@ -174,6 +176,7 @@ void push_after(List *p_list, void *data, ListElement *previous) {
 
 	ListElement* element=malloc(sizeof(ListElement));
 	element->data=data;
+	element->next=NULL;
 
 	if(previous==NULL)
 	{
@@ -196,7 +199,10 @@ void insert_elem(List *p_list, void *p_data) {
 	while(tmp)
 	{
 		if(p_list->compare_data(p_data,tmp->data)==0)
+		{
 			exist=1;
+			break;
+		}
 		tmp=tmp->next;
 	}
 	if(!exist) push_after(p_list, p_data, find_insertion_point(p_list, p_data));
@@ -241,8 +247,8 @@ typedef struct DataWord {
 } DataWord;
 
 void dump_word (const void *d) {
-	char * x = ((DataWord *)d)->word;
-	printf("%s\n", x);
+	DataWord * x = (DataWord *)d;
+	printf("%s\n", x->word);
 }
 
 void dump_word_lowercase (const void *d) {
@@ -264,25 +270,32 @@ int cmp_word_alphabet(const void *a, const void *b) {
 int cmp_word_counter(const void *a, const void *b) {
 	int one = ((DataWord*)a)->counter;
 	int two = ((DataWord*)b)->counter;
-	return two-one;
+	return one-two;
 }
 
 // insert element; if present increase counter
 void insert_elem_counter(List *p_list, void *data) {
 	ListElement* tmp;
+	DataWord* two= (DataWord*) data;
 	tmp = p_list->head;
 	int exist=0;
 	while(tmp)
-	{
-		DataWord* one = (DataWord*) tmp;
-		if(p_list->compare_data(data,tmp->data)==0)
+	{	
+		DataWord* one = tmp->data;
+		if(p_list->compare_data(two,tmp->data)==0)
 		{
 			exist=1;
 			one->counter+=1;
 		}
 		tmp=tmp->next;
 	}
-	if(!exist) push_after(p_list, data, find_insertion_point(p_list, data));
+
+	if(exist==0) 
+	{
+		two->counter=1;
+		push_after(p_list, two, find_insertion_point(p_list, two));
+	}
+
 }
 
 // read text, parse it to words, and insert those words to the list
@@ -291,42 +304,38 @@ void insert_elem_counter(List *p_list, void *data) {
 void stream_to_list(List *p_list, FILE *stream, int order) {
 	char line[128];
 	char znaki[]=".,?!:;- 	\n\r";
-	if(order==0)
-	{
+	int bylo=0;
 	while(fgets(line, 128, stdin)!=NULL)
 	{	
 		char *words;
 		words=strtok(line, znaki);
 		while(words != NULL)
-		{
+		{	
 			DataWord* one = malloc(sizeof(DataWord));
 			one->word = malloc(sizeof(words));
+			if(order==1)
+			{
+			for(size_t i=0; i<strlen(words); ++i)
+				{
+					words[i]=tolower((unsigned char) words[i]);
+				}
+			}
 			one->word=strdup(words);
+			if(order==0 || (order==1 && bylo==0))
+			{
+			one->counter=1;
 			push_back(p_list, one);
+			bylo=1;
+			}
+			else
+			{	
+				p_list->insert_sorted(p_list,one);
+			}
 			words=strtok(NULL, znaki);
 		}
-	}
-	}
-	else
-	{
-	while(fgets(line, 128, stdin)!=NULL)
-	{	
-		char *words;
-		words=strtok(line, znaki);
-		while(words != NULL)
-		{
-			DataWord* one = malloc(sizeof(DataWord));
-			one->word = malloc(sizeof(words));
-  			for(char *p=words; *p; p++) *p=tolower(*p);
-			one->word=strdup(words);
-			one->counter=0;
-			printf("WCZYTUJE DANE\n");
-			insert_elem_counter(p_list,one);
-			words=strtok(NULL, znaki);
-		}
-	}
-	}
+	}	
 }
+
 
 // test integer list
 void list_test(List *p_list, int n) {
