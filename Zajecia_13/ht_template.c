@@ -48,12 +48,28 @@ void *safe_malloc(size_t size) {
 // initialize table fields
 void init_ht(hash_table *p_table, int size, DataFp dump_data, DataFp free_data,
 		 CompareDataFp compare_data, HashFp hash_function, DataPFp modify_data) {
+			
+			 p_table->size=size;
+			 p_table->no_elements=0;
+			 p_table->ht=malloc(sizeof(ht_element)*(size_t)size);
+			 for( int i=0; i<size; i++)
+			 	p_table->ht[i]=NULL;
+			 p_table->dump_data=dump_data;
+			 p_table->free_data=free_data;
+			 p_table->compare_data=compare_data;
+			 p_table->hash_function=hash_function;
+			 p_table->modify_data=modify_data;
 
 }
 
 // print elements of the list with hash n
 void dump_list(const hash_table* p_table, int n) {
-
+	ht_element *ptr=p_table->ht[n];
+	while(ptr!=NULL)
+	{
+		p_table->dump_data(ptr->data);
+		ptr=ptr->next;
+	}
 }
 
 // Free element pointed by data_union using free_data() function
@@ -63,7 +79,7 @@ void free_element(DataFp free_data, ht_element *to_delete) {
 
 // free all elements from the table (and the table itself)
 void free_table(hash_table* p_table) {
-
+	
 }
 
 // calculate hash function for integer k
@@ -89,7 +105,19 @@ ht_element *get_element(hash_table *p_table, data_union *data) {
 
 // insert element
 void insert_element(hash_table *p_table, data_union *data) {
+	int ind=p_table->hash_function(*data,p_table->size);
+	if(p_table->ht[ind]!=NULL && p_table->compare_data(p_table->ht[ind]->data, *data)!=0)
+	{
+		ht_element *element=p_table->ht[ind];
+		while(element->next!=NULL)
+		{
+			if(p_table->compare_data(element->data, *data)==0)
+				return;
+			element=element->next;
+		}
+		
 
+	}
 }
 
 // remove element
@@ -106,6 +134,7 @@ int hash_int(data_union data, int size) {
 }
 
 void dump_int(data_union data) {
+	printf("%d", data.int_data);
 }
 
 int cmp_int(data_union a, data_union b) {
@@ -123,6 +152,7 @@ int hash_char(data_union data, int size) {
 }
 
 void dump_char(data_union data) {
+	printf("%c ", data.char_data);
 }
 
 int cmp_char(data_union a, data_union b) {
@@ -208,27 +238,27 @@ int main(void) {
 			dump_list(&table, index);
 			free_table(&table);
 			break;
-		case 2: // test char table
-			scanf("%d %d",&n, &index);
-			init_ht(&table, 4, dump_char,NULL,
-			        cmp_char, hash_char, NULL);
-			table_test(&table, n, create_data_char);
-			printf ("%d\n", table.size);
-			dump_list(&table, index);
-			free_table(&table);
-			break;
-		case 3: // read words from text, insert into table, and print
-			scanf("%s", buffer);
-			init_ht(&table, 8, dump_word, free_word,
-			        cmp_word, hash_word, modify_word);
-			stream_to_ht(&table, stdin);
-			printf ("%d\n", table.size);
-			data = create_data_word(buffer);
-			ht_element *e = get_element(&table, &data);
-			if (e) table.dump_data(e->data);
-			if (table.free_data) table.free_data(data);
-			free_table(&table);
-			break;
+		// case 2: // test char table
+		// 	scanf("%d %d",&n, &index);
+		// 	init_ht(&table, 4, dump_char,NULL,
+		// 	        cmp_char, hash_char, NULL);
+		// 	table_test(&table, n, create_data_char);
+		// 	printf ("%d\n", table.size);
+		// 	dump_list(&table, index);
+		// 	free_table(&table);
+		// 	break;
+		// case 3: // read words from text, insert into table, and print
+		// 	scanf("%s", buffer);
+		// 	init_ht(&table, 8, dump_word, free_word,
+		// 	        cmp_word, hash_word, modify_word);
+		// 	stream_to_ht(&table, stdin);
+		// 	printf ("%d\n", table.size);
+		// 	data = create_data_word(buffer);
+		// 	ht_element *e = get_element(&table, &data);
+		// 	if (e) table.dump_data(e->data);
+		// 	if (table.free_data) table.free_data(data);
+		// 	free_table(&table);
+		// 	break;
 		default:
 			printf("NOTHING TO DO FOR %d\n", to_do);
 			break;
