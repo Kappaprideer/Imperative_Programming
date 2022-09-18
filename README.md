@@ -1,4 +1,4 @@
-# Imperatywne
+# Taks from course: Programowanie imperatywne at AGH UST
 
 Aby skompilować program/ To compile a file: 
 
