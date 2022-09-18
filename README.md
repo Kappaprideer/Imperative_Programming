@@ -1,6 +1,6 @@
 # Imperatywne
 
-Aby skompilować program/ To comile a file: 
+Aby skompilować program/ To compile a file: 
 
 gcc -std=gnu11 -O2 -Wall -Wconversion -o nazwa_programu nazwa_pliku.c -lm
 
