@@ -1,0 +1,3 @@
+gcc -std=gnu11 -O2 -Wall -Wconversion -o nazwa_programu nazwa_pliku.c -lm
+
+alias g='function _g(){ name="$(echo $1 | cut -d '.' -f1)"; gcc -std=gnu11 -O2 -Wall -Wconversion $1 -o $name -lm && ./$name; rm $name; };_g'
